@@ -2,20 +2,17 @@ module.exports = function FruitBasket(storage) {
 
     var pool = storage;
 
-    async function store(type, price) {
+    async function store(type,perFruit,price) {
         const db = await pool.query('select * from fruits');
-
         if (db.rows.length == 0) {
-            await pool.query('INSERT INTO fruits (fruit_type, qty, price) values ($1,$2,$3)', [type, 1, price]);
+            await pool.query('INSERT INTO fruits (fruit_type, qty, price) values ($1,$2,$3)', [type, perFruit, price]);
         } else {
-            await pool.query('UPDATE fruits SET qty = qty + 1 WHERE fruit_type = $1', [type])
+            await pool.query('UPDATE fruits SET qty = qty + $1 WHERE fruit_type = $2', [perFruit, type]);
         }
     }
 
-    async function allFruits() {
-
-        const db = await pool.query('select fruit_type from fruits');
-
+    async function allFruits(type) {
+        const db = await pool.query('select fruit_type from fruits WHERE fruit_type = $1', [type]);
         return db.rows
     }
 
@@ -24,13 +21,9 @@ module.exports = function FruitBasket(storage) {
         return db.rows[0].qty
     }
 
-    async function typeTotal(type){
-
-        const dbPrice = await pool.query('select price from fruits WHERE fruit_type = $1', [type]);
-        const dbQty = await pool.query('select qty from fruits WHERE fruit_type = $1', [type]);
-
-        return 'R' + dbPrice.rows[0].price * dbQty.rows[0].qty;
-
+    async function typeTotal(type) {
+        const dbQty = await pool.query('select SUM(price*qty) from fruits WHERE fruit_type = $1', [type]);
+        return 'R' + dbQty.rows[0].sum
     }
 
     async function clearTable() {
