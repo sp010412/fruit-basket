@@ -26,11 +26,6 @@ module.exports = function FruitBasket(storage) {
         return 'R' + dbQty.rows[0].sum
     }
 
-    async function clearTable() {
-        await pool.query("DELETE FROM fruits");
-    }
-
-
     return {
         store,
         allFruits,
